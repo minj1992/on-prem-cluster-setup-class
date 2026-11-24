@@ -1,0 +1,228 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: rabbitmq-alerts
+spec:
+  groups:
+    # ------------------------------------------------------------------
+    # Pod / cluster health (kube-state-metrics + scrape status)
+    # Broker is deployed by dt-broker into namespace "broker" as the
+    # StatefulSet "dt-broker-rabbitmq" (pods dt-broker-rabbitmq-0..N).
+    # ------------------------------------------------------------------
+    - name: rabbitmq-pod.rules
+      rules:
+        - alert: RabbitMQPodNotReady
+          expr: kube_pod_status_ready{namespace="broker",pod=~".*rabbitmq-[0-9]+",condition="true"} == 0
+          for: 5m
+          labels:
+            severity: critical
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ pod not ready
+            description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has not been Ready for 5 minutes."
+
+        - alert: RabbitMQPodRestartingFrequently
+          expr: increase(kube_pod_container_status_restarts_total{namespace="broker",pod=~".*rabbitmq-[0-9]+",container="rabbitmq"}[15m]) > 3
+          for: 5m
+          labels:
+            severity: warning
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ pod restarting frequently
+            description: "Container in {{ $labels.pod }} restarted {{ $value | printf \"%.0f\" }} times in the last 15 minutes."
+
+        - alert: RabbitMQReplicasMismatch
+          expr: kube_statefulset_status_replicas_ready{namespace="broker",statefulset=~".*rabbitmq"} != kube_statefulset_replicas{namespace="broker",statefulset=~".*rabbitmq"}
+          for: 10m
+          labels:
+            severity: warning
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ StatefulSet is missing replicas
+            description: "StatefulSet {{ $labels.statefulset }} has {{ $value }} ready replicas, which differs from the desired count for 10 minutes."
+
+        - alert: RabbitMQClusterQuorumLost
+          expr: kube_statefulset_status_replicas_ready{namespace="broker",statefulset=~".*rabbitmq"} < (floor(kube_statefulset_replicas{namespace="broker",statefulset=~".*rabbitmq"} / 2) + 1)
+          for: 2m
+          labels:
+            severity: critical
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ cluster has lost majority
+            description: "Only {{ $value }} RabbitMQ pods are ready in {{ $labels.statefulset }}. Quorum queues cannot accept writes without a majority."
+
+        - alert: RabbitMQMetricsTargetDown
+          expr: up{namespace="broker",service=~".*rabbitmq"} == 0
+          for: 5m
+          labels:
+            severity: critical
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ metrics endpoint down
+            description: "Prometheus cannot scrape {{ $labels.pod }} ({{ $labels.instance }}) for 5 minutes. The node is down or the prometheus plugin is not responding."
+
+        - alert: RabbitMQMetricsAbsent
+          expr: absent(rabbitmq_identity_info{namespace="broker"})
+          for: 10m
+          labels:
+            severity: critical
+            component: rabbitmq
+          annotations:
+            summary: No RabbitMQ metrics received
+            description: "No RabbitMQ series in namespace broker for 10 minutes. Check the broker pods and the dt-broker ServiceMonitor."
+
+    # ------------------------------------------------------------------
+    # Node resources and RabbitMQ resource alarms (rabbitmq_prometheus)
+    # ------------------------------------------------------------------
+    - name: rabbitmq-node.rules
+      rules:
+        - alert: RabbitMQMemoryAlarm
+          expr: max by (namespace, pod) (rabbitmq_alarms_memory_used_watermark{namespace="broker"}) == 1
+          for: 1m
+          labels:
+            severity: critical
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ memory alarm raised
+            description: "{{ $labels.pod }} hit the memory high watermark. Publishers on the whole cluster are blocked."
+
+        - alert: RabbitMQDiskAlarm
+          expr: max by (namespace, pod) (rabbitmq_alarms_free_disk_space_watermark{namespace="broker"}) == 1
+          for: 1m
+          labels:
+            severity: critical
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ disk alarm raised
+            description: "{{ $labels.pod }} has less free disk than disk_free_limit. Publishers on the whole cluster are blocked."
+
+        - alert: RabbitMQFileDescriptorAlarm
+          expr: max by (namespace, pod) (rabbitmq_alarms_file_descriptor_limit{namespace="broker"}) == 1
+          for: 1m
+          labels:
+            severity: critical
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ file descriptor alarm raised
+            description: "{{ $labels.pod }} ran out of file descriptors and will refuse new connections."
+
+        - alert: RabbitMQHighMemoryUsage
+          expr: |
+            max by (namespace, pod) (rabbitmq_process_resident_memory_bytes{namespace="broker"})
+              / max by (namespace, pod) (rabbitmq_resident_memory_limit_bytes{namespace="broker"}) > 0.85
+          for: 10m
+          labels:
+            severity: warning
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ memory close to watermark
+            description: "{{ $labels.pod }} is using {{ $value | humanizePercentage }} of its memory high watermark."
+
+        - alert: RabbitMQLowDiskHeadroom
+          expr: |
+            max by (namespace, pod) (rabbitmq_disk_space_available_bytes{namespace="broker"})
+              / max by (namespace, pod) (rabbitmq_disk_space_available_limit_bytes{namespace="broker"}) < 1.5
+          for: 10m
+          labels:
+            severity: warning
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ disk free close to alarm limit
+            description: "{{ $labels.pod }} free disk is only {{ $value | printf \"%.2f\" }}x the disk_free_limit."
+
+        - alert: RabbitMQPVCAlmostFull
+          expr: |
+            1 - (kubelet_volume_stats_available_bytes{namespace="broker",persistentvolumeclaim=~"data-.*rabbitmq-[0-9]+"}
+              / kubelet_volume_stats_capacity_bytes{namespace="broker",persistentvolumeclaim=~"data-.*rabbitmq-[0-9]+"}) > 0.80
+          for: 15m
+          labels:
+            severity: warning
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ data volume almost full
+            description: "PVC {{ $labels.persistentvolumeclaim }} is {{ $value | humanizePercentage }} full."
+
+        - alert: RabbitMQHighFileDescriptorUsage
+          expr: |
+            max by (namespace, pod) (rabbitmq_process_open_fds{namespace="broker"})
+              / max by (namespace, pod) (rabbitmq_process_max_fds{namespace="broker"}) > 0.80
+          for: 10m
+          labels:
+            severity: warning
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ file descriptor usage high
+            description: "{{ $labels.pod }} is using {{ $value | humanizePercentage }} of its file descriptors."
+
+        - alert: RabbitMQHighCPUUsage
+          expr: |
+            sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{namespace="broker",pod=~".*rabbitmq-[0-9]+",container="rabbitmq"}[5m]))
+              / sum by (namespace, pod) (kube_pod_container_resource_limits{namespace="broker",pod=~".*rabbitmq-[0-9]+",container="rabbitmq",resource="cpu"}) > 0.85
+          for: 15m
+          labels:
+            severity: warning
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ CPU close to limit
+            description: "{{ $labels.pod }} is using {{ $value | humanizePercentage }} of its CPU limit."
+
+    # ------------------------------------------------------------------
+    # Queue status. The broker is scraped on the aggregated /metrics
+    # endpoint, so there are no vhost/queue labels: these alerts work on
+    # the total across all queues in the cluster.
+    # ------------------------------------------------------------------
+    - name: rabbitmq-queue.rules
+      rules:
+        - alert: RabbitMQQueueBacklogHigh
+          expr: sum by (namespace) (rabbitmq_queue_messages_ready{namespace="broker"}) > 1000
+          for: 10m
+          labels:
+            severity: warning
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ queue backlog is high
+            description: "{{ $value | printf \"%.0f\" }} messages have been waiting in RabbitMQ queues (all queues combined) for 10 minutes."
+
+        - alert: RabbitMQQueueBacklogCritical
+          expr: sum by (namespace) (rabbitmq_queue_messages_ready{namespace="broker"}) > 10000
+          for: 10m
+          labels:
+            severity: critical
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ queue backlog is critical
+            description: "{{ $value | printf \"%.0f\" }} messages have been waiting in RabbitMQ queues (all queues combined) for 10 minutes."
+
+        - alert: RabbitMQNoConsumers
+          expr: |
+            sum by (namespace) (rabbitmq_consumers{namespace="broker"}) == 0
+              and sum by (namespace) (rabbitmq_queue_messages_ready{namespace="broker"}) > 0
+          for: 10m
+          labels:
+            severity: warning
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ has messages but no consumers
+            description: "Messages are waiting in RabbitMQ but no consumer has been connected for 10 minutes."
+
+        - alert: RabbitMQUnackedMessagesHigh
+          expr: sum by (namespace) (rabbitmq_queue_messages_unacked{namespace="broker"}) > 1000
+          for: 15m
+          labels:
+            severity: warning
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ unacknowledged messages piling up
+            description: "{{ $value | printf \"%.0f\" }} messages are picked up but not acknowledged (all queues combined). Consumers may be stuck."
+
+        - alert: RabbitMQUnroutableMessages
+          expr: |
+            sum by (namespace) (increase(rabbitmq_global_messages_unroutable_dropped_total{namespace="broker"}[10m]))
+              + sum by (namespace) (increase(rabbitmq_global_messages_unroutable_returned_total{namespace="broker"}[10m])) > 0
+          for: 5m
+          labels:
+            severity: warning
+            component: rabbitmq
+          annotations:
+            summary: RabbitMQ is dropping or returning unroutable messages
+            description: "{{ $value | printf \"%.0f\" }} messages in the last 10 minutes matched no queue binding."
