@@ -1,0 +1,66 @@
+Dashboard widgets
+
+Section 1: Overview (is RabbitMQ healthy?)
+
+Pods ready: how many of the 3 RabbitMQ pods are running.
+Nodes sending metrics: how many pods are actually sending data.
+Active alarms: must be 0. Anything else means RabbitMQ has stopped taking messages.
+Pod restarts: how many times pods restarted. Should be 0.
+Messages waiting: messages in queues not yet picked up.
+Messages in progress: messages picked up but not finished yet.
+Consumers: how many apps are reading messages.
+Connections: how many apps are connected.
+
+Section 2: Pods
+
+Pod status table: one row per pod showing ready, metrics, restarts, alarms, memory and server.
+Pod ready over time: green/red timeline of when pods were up or down.
+CPU used: CPU per pod against its limit.
+Memory used: memory per pod against its limit.
+
+Section 3: Messages (is work flowing?)
+
+Messages waiting and in progress: the backlog over time.
+Messages in vs out: messages coming in vs going out per second.
+Consumers, connections and queues: these counts over time.
+Lost messages: messages that matched no queue and were dropped.
+
+Section 4: Limits (how close is RabbitMQ to blocking?)
+
+Memory vs RabbitMQ limit: % of RabbitMQ's memory limit used.
+Disk space used: how full each data disk is.
+Connection and process limits: % of connection handles and internal processes used.
+Alert rules
+
+Pod alerts
+
+#	Alert	Fires when	Severity
+1	RabbitMQPodNotReady	A pod is not ready for 5 min	Critical
+2	RabbitMQPodRestartingFrequently	A pod restarts more than 3 times in 15 min	Warning
+3	RabbitMQReplicasMismatch	Fewer pods are running than expected for 10 min	Warning
+4	RabbitMQClusterQuorumLost	Fewer than 2 of 3 pods are ready (cluster can't work)	Critical
+5	RabbitMQMetricsTargetDown	Prometheus can't reach a pod for 5 min	Critical
+6	RabbitMQMetricsAbsent	No RabbitMQ data at all for 10 min	Critical
+
+Resource alerts
+
+#	Alert	Fires when	Severity
+7	RabbitMQMemoryAlarm	RabbitMQ hit its memory limit and is blocking messages	Critical
+8	RabbitMQDiskAlarm	Disk is too low and RabbitMQ is blocking messages	Critical
+9	RabbitMQFileDescriptorAlarm	Too many connections, so new ones are refused	Critical
+10	RabbitMQHighMemoryUsage	Memory is above 85% of the limit for 10 min	Warning
+11	RabbitMQLowDiskHeadroom	Free disk is getting close to the blocking limit	Warning
+12	RabbitMQPVCAlmostFull	Data disk is more than 80% full	Warning
+13	RabbitMQHighFileDescriptorUsage	Connection handles are more than 80% used	Warning
+14	RabbitMQHighCPUUsage	CPU is above 85% of the limit for 15 min	Warning
+
+Queue alerts (all queues combined)
+
+#	Alert	Fires when	Severity
+15	RabbitMQQueueBacklogHigh	More than 1,000 messages waiting for 10 min	Warning
+16	RabbitMQQueueBacklogCritical	More than 10,000 messages waiting for 10 min	Critical
+17	RabbitMQNoConsumers	Messages are waiting but no app is reading them	Warning
+18	RabbitMQUnackedMessagesHigh	More than 1,000 messages picked up but not finished	Warning
+19	RabbitMQUnroutableMessages	Messages are being dropped because they matched no queue	Warning
+
+In short: 8 alerts are critical, meaning RabbitMQ is down or blocking messages, so act now. The other 11 are warnings, meaning something is heading toward a problem, so check it soon.
