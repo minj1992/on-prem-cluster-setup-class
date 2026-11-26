@@ -29,7 +29,7 @@
       }
     ]
   },
-  "description": "RabbitMQ (dt-broker) pod, node and queue status",
+  "description": "RabbitMQ (dt-broker): pod health, message flow and resource limits",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -116,7 +116,7 @@
   "panels": [
     {
       "type": "row",
-      "title": "Cluster overview",
+      "title": "Overview: is RabbitMQ healthy?",
       "id": 1,
       "collapsed": false,
       "gridPos": {
@@ -135,7 +135,7 @@
       "id": 2,
       "type": "stat",
       "title": "Pods ready",
-      "description": "Ready RabbitMQ pods (kube-state-metrics). Should equal desired replicas.",
+      "description": "How many RabbitMQ pods are running and ready. We run 3. Green = 3, orange = 2 (still works), red = 1 or 0 (cluster is down).",
       "gridPos": {
         "h": 4,
         "w": 3,
@@ -145,6 +145,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "decimals": 0,
           "mappings": [],
           "color": {
             "mode": "thresholds"
@@ -174,17 +175,17 @@
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "textMode": "auto",
+        "textMode": "value",
         "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
           "fields": "",
           "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
+        }
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -209,8 +210,8 @@
       },
       "id": 3,
       "type": "stat",
-      "title": "Desired replicas",
-      "description": "",
+      "title": "Nodes sending metrics",
+      "description": "How many RabbitMQ nodes Prometheus can read data from. Should match Pods ready. Lower means RabbitMQ inside a pod is stuck.",
       "gridPos": {
         "h": 4,
         "w": 3,
@@ -220,73 +221,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "none",
-          "mappings": [],
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "text",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "textMode": "auto",
-        "wideLayout": true,
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(kube_statefulset_replicas{namespace=~\"$namespace\",statefulset=~\".*rabbitmq\"})",
-          "legendFormat": "__auto",
-          "refId": "A",
-          "range": false,
-          "instant": true
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 4,
-      "type": "stat",
-      "title": "Nodes reporting",
-      "description": "RabbitMQ nodes Prometheus is scraping right now.",
-      "gridPos": {
-        "h": 4,
-        "w": 3,
-        "x": 6,
-        "y": 1
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
+          "decimals": 0,
           "mappings": [],
           "color": {
             "mode": "thresholds"
@@ -316,17 +251,17 @@
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "textMode": "auto",
+        "textMode": "value",
         "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
           "fields": "",
           "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
+        }
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -349,19 +284,20 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 5,
+      "id": 4,
       "type": "stat",
       "title": "Active alarms",
-      "description": "Memory, disk and file-descriptor alarms. Any alarm blocks publishers.",
+      "description": "Memory, disk or connection-limit alarms. Must be 0. Any alarm means RabbitMQ has STOPPED accepting new messages.",
       "gridPos": {
         "h": 4,
         "w": 3,
-        "x": 9,
+        "x": 6,
         "y": 1
       },
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "decimals": 0,
           "mappings": [],
           "color": {
             "mode": "thresholds"
@@ -387,17 +323,17 @@
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "textMode": "auto",
+        "textMode": "value",
         "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
           "fields": "",
           "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
+        }
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -420,236 +356,20 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 6,
+      "id": 5,
       "type": "stat",
-      "title": "Queues",
-      "description": "",
+      "title": "Pod restarts",
+      "description": "How many times RabbitMQ pods restarted in the selected time range. Should be 0.",
       "gridPos": {
         "h": 4,
         "w": 3,
-        "x": 12,
+        "x": 9,
         "y": 1
       },
       "fieldConfig": {
         "defaults": {
           "unit": "none",
-          "mappings": [],
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "textMode": "auto",
-        "wideLayout": true,
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rabbitmq_queues{namespace=~\"$namespace\"})",
-          "legendFormat": "__auto",
-          "refId": "A",
-          "range": false,
-          "instant": true
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 7,
-      "type": "stat",
-      "title": "Messages ready",
-      "description": "",
-      "gridPos": {
-        "h": 4,
-        "w": 3,
-        "x": 15,
-        "y": 1
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "mappings": [],
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1000
-              },
-              {
-                "color": "red",
-                "value": 10000
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "textMode": "auto",
-        "wideLayout": true,
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rabbitmq_queue_messages_ready{namespace=~\"$namespace\"})",
-          "legendFormat": "__auto",
-          "refId": "A",
-          "range": false,
-          "instant": true
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 8,
-      "type": "stat",
-      "title": "Messages unacked",
-      "description": "",
-      "gridPos": {
-        "h": 4,
-        "w": 3,
-        "x": 18,
-        "y": 1
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "mappings": [],
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1000
-              },
-              {
-                "color": "red",
-                "value": 10000
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "textMode": "auto",
-        "wideLayout": true,
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rabbitmq_queue_messages_unacked{namespace=~\"$namespace\"})",
-          "legendFormat": "__auto",
-          "refId": "A",
-          "range": false,
-          "instant": true
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 9,
-      "type": "stat",
-      "title": "Pod restarts (range)",
-      "description": "",
-      "gridPos": {
-        "h": 4,
-        "w": 3,
-        "x": 21,
-        "y": 1
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
+          "decimals": 0,
           "mappings": [],
           "color": {
             "mode": "thresholds"
@@ -679,17 +399,17 @@
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "textMode": "auto",
+        "textMode": "value",
         "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
           "fields": "",
           "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
+        }
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -712,19 +432,20 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 10,
+      "id": 6,
       "type": "stat",
-      "title": "Connections",
-      "description": "",
+      "title": "Messages waiting",
+      "description": "Messages sitting in queues, not yet picked up (the backlog). Orange from 1,000, red from 10,000.",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 0,
-        "y": 5
+        "w": 3,
+        "x": 12,
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "decimals": 0,
           "mappings": [],
           "color": {
             "mode": "thresholds"
@@ -733,8 +454,16 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "green",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1000
+              },
+              {
+                "color": "red",
+                "value": 10000
               }
             ]
           }
@@ -742,21 +471,21 @@
         "overrides": []
       },
       "options": {
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "textMode": "auto",
+        "textMode": "value",
         "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
           "fields": "",
           "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
+        }
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -766,7 +495,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(rabbitmq_connections{namespace=~\"$namespace\"})",
+          "expr": "sum(rabbitmq_queue_messages_ready{namespace=~\"$namespace\"})",
           "legendFormat": "__auto",
           "refId": "A",
           "range": false,
@@ -779,19 +508,20 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 11,
+      "id": 7,
       "type": "stat",
-      "title": "Channels",
-      "description": "",
+      "title": "Messages in progress",
+      "description": "Messages a consumer has picked up but not yet confirmed (unacked). A high number means consumers are slow or stuck.",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 4,
-        "y": 5
+        "w": 3,
+        "x": 15,
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "decimals": 0,
           "mappings": [],
           "color": {
             "mode": "thresholds"
@@ -800,8 +530,16 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "green",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1000
+              },
+              {
+                "color": "red",
+                "value": 10000
               }
             ]
           }
@@ -809,21 +547,21 @@
         "overrides": []
       },
       "options": {
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "textMode": "auto",
+        "textMode": "value",
         "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
           "fields": "",
           "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
+        }
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -833,7 +571,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(rabbitmq_channels{namespace=~\"$namespace\"})",
+          "expr": "sum(rabbitmq_queue_messages_unacked{namespace=~\"$namespace\"})",
           "legendFormat": "__auto",
           "refId": "A",
           "range": false,
@@ -846,19 +584,20 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 12,
+      "id": 8,
       "type": "stat",
       "title": "Consumers",
-      "description": "",
+      "description": "Number of app listeners reading from queues. 0 means nobody is processing messages.",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 8,
-        "y": 5
+        "w": 3,
+        "x": 18,
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "decimals": 0,
           "mappings": [],
           "color": {
             "mode": "thresholds"
@@ -867,8 +606,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
               }
             ]
           }
@@ -876,21 +619,21 @@
         "overrides": []
       },
       "options": {
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "textMode": "auto",
+        "textMode": "value",
         "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
           "fields": "",
           "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
+        }
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -913,153 +656,20 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 13,
+      "id": 9,
       "type": "stat",
-      "title": "Publish rate",
-      "description": "",
+      "title": "Connections",
+      "description": "Number of apps connected to RabbitMQ right now.",
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 12,
-        "y": 5
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ops",
-          "mappings": [],
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "text",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "textMode": "auto",
-        "wideLayout": true,
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(rabbitmq_global_messages_received_total{namespace=~\"$namespace\"}[5m]))",
-          "legendFormat": "__auto",
-          "refId": "A",
-          "range": false,
-          "instant": true
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 14,
-      "type": "stat",
-      "title": "Deliver rate",
-      "description": "",
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 16,
-        "y": 5
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ops",
-          "mappings": [],
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "text",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "textMode": "auto",
-        "wideLayout": true,
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(rabbitmq_global_messages_delivered_total{namespace=~\"$namespace\"}[5m]))",
-          "legendFormat": "__auto",
-          "refId": "A",
-          "range": false,
-          "instant": true
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 15,
-      "type": "stat",
-      "title": "RabbitMQ version",
-      "description": "",
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 20,
-        "y": 5
+        "w": 3,
+        "x": 21,
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "decimals": 0,
           "mappings": [],
           "color": {
             "mode": "thresholds"
@@ -1068,7 +678,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "text",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -1077,21 +687,21 @@
         "overrides": []
       },
       "options": {
-        "colorMode": "none",
+        "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "textMode": "name",
+        "textMode": "value",
         "wideLayout": true,
+        "showPercentChange": false,
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
           "fields": "",
           "values": false
-        },
-        "showPercentChange": false,
-        "percentChangeColorMode": "standard"
+        }
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -1101,8 +711,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count by (rabbitmq_version) (rabbitmq_build_info{namespace=~\"$namespace\"})",
-          "legendFormat": "{{rabbitmq_version}}",
+          "expr": "sum(rabbitmq_connections{namespace=~\"$namespace\"})",
+          "legendFormat": "__auto",
           "refId": "A",
           "range": false,
           "instant": true
@@ -1111,14 +721,14 @@
     },
     {
       "type": "row",
-      "title": "Pod status",
-      "id": 16,
+      "title": "Pods: status of each RabbitMQ pod",
+      "id": 10,
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 5
       },
       "panels": []
     },
@@ -1127,24 +737,24 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 17,
+      "id": 11,
       "type": "table",
       "title": "Pod status",
-      "description": "One row per RabbitMQ pod: readiness, phase, restarts in the selected range, Prometheus scrape status, node and RabbitMQ alarms.",
+      "description": "One row per RabbitMQ pod. Ready = Kubernetes health check passes. Metrics = Prometheus can read it. Restarts = in selected time range. Alarms must be 0.",
       "gridPos": {
-        "h": 7,
+        "h": 6,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 6
       },
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "align": "auto",
+            "align": "center",
             "cellOptions": {
               "type": "auto"
             },
-            "filterable": true
+            "filterable": false
           },
           "mappings": [],
           "thresholds": {
@@ -1167,7 +777,8 @@
               {
                 "id": "custom.cellOptions",
                 "value": {
-                  "type": "color-background"
+                  "type": "color-background",
+                  "mode": "basic"
                 }
               },
               {
@@ -1194,12 +805,10 @@
                     "options": {
                       "0": {
                         "text": "NOT READY",
-                        "color": "red",
                         "index": 0
                       },
                       "1": {
                         "text": "READY",
-                        "color": "green",
                         "index": 1
                       }
                     }
@@ -1211,61 +820,14 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Running"
+              "options": "Metrics"
             },
             "properties": [
               {
                 "id": "custom.cellOptions",
                 "value": {
-                  "type": "color-background"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "red",
-                      "value": null
-                    },
-                    {
-                      "color": "green",
-                      "value": 1
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "0": {
-                        "text": "NO",
-                        "index": 0
-                      },
-                      "1": {
-                        "text": "YES",
-                        "index": 1
-                      }
-                    }
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Scrape up"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
+                  "type": "color-background",
+                  "mode": "basic"
                 }
               },
               {
@@ -1307,13 +869,14 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Restarts (range)"
+              "options": "Restarts"
             },
             "properties": [
               {
                 "id": "custom.cellOptions",
                 "value": {
-                  "type": "color-background"
+                  "type": "color-background",
+                  "mode": "basic"
                 }
               },
               {
@@ -1347,7 +910,8 @@
               {
                 "id": "custom.cellOptions",
                 "value": {
-                  "type": "color-background"
+                  "type": "color-background",
+                  "mode": "basic"
                 }
               },
               {
@@ -1365,6 +929,45 @@
                     }
                   ]
                 }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memory used"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.8
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.9
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
               }
             ]
           },
@@ -1420,7 +1023,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max by (pod) (kube_pod_status_phase{namespace=~\"$namespace\",pod=~\"$pod\",phase=\"Running\"})",
+          "expr": "max by (pod) (up{namespace=~\"$namespace\",pod=~\"$pod\",service=~\".*rabbitmq\"})",
           "legendFormat": "__auto",
           "refId": "B",
           "range": false,
@@ -1446,7 +1049,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max by (pod) (up{namespace=~\"$namespace\",pod=~\"$pod\",service=~\".*rabbitmq\"})",
+          "expr": "max by (pod) (rabbitmq_alarms_memory_used_watermark{namespace=~\"$namespace\",pod=~\"$pod\"}) + max by (pod) (rabbitmq_alarms_free_disk_space_watermark{namespace=~\"$namespace\",pod=~\"$pod\"}) + max by (pod) (rabbitmq_alarms_file_descriptor_limit{namespace=~\"$namespace\",pod=~\"$pod\"})",
           "legendFormat": "__auto",
           "refId": "D",
           "range": false,
@@ -1459,7 +1062,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max by (pod, node) (kube_pod_info{namespace=~\"$namespace\",pod=~\"$pod\"})",
+          "expr": "max by (pod) (rabbitmq_process_resident_memory_bytes{namespace=~\"$namespace\",pod=~\"$pod\"}) / max by (pod) (rabbitmq_resident_memory_limit_bytes{namespace=~\"$namespace\",pod=~\"$pod\"})",
           "legendFormat": "__auto",
           "refId": "E",
           "range": false,
@@ -1472,7 +1075,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max by (pod) (rabbitmq_alarms_memory_used_watermark{namespace=~\"$namespace\",pod=~\"$pod\"}) + max by (pod) (rabbitmq_alarms_free_disk_space_watermark{namespace=~\"$namespace\",pod=~\"$pod\"}) + max by (pod) (rabbitmq_alarms_file_descriptor_limit{namespace=~\"$namespace\",pod=~\"$pod\"})",
+          "expr": "max by (pod, node) (kube_pod_info{namespace=~\"$namespace\",pod=~\"$pod\"})",
           "legendFormat": "__auto",
           "refId": "F",
           "range": false,
@@ -1491,17 +1094,26 @@
             "excludeByName": {
               "Time": true
             },
+            "indexByName": {
+              "pod": 0,
+              "Value #A": 1,
+              "Value #B": 2,
+              "Value #C": 3,
+              "Value #D": 4,
+              "Value #E": 5,
+              "node": 6,
+              "Value #F": 7
+            },
             "renameByName": {
               "pod": "Pod",
-              "node": "K8s node",
+              "node": "Server (K8s node)",
               "Value #A": "Ready",
-              "Value #B": "Running",
-              "Value #C": "Restarts (range)",
-              "Value #D": "Scrape up",
-              "Value #E": "info",
-              "Value #F": "Alarms"
-            },
-            "indexByName": {}
+              "Value #B": "Metrics",
+              "Value #C": "Restarts",
+              "Value #D": "Alarms",
+              "Value #E": "Memory used",
+              "Value #F": "info"
+            }
           }
         }
       ]
@@ -1511,14 +1123,15 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 18,
+      "id": 12,
       "type": "state-timeline",
-      "title": "Pod readiness over time",
+      "title": "Pod ready over time",
+      "description": "Green = pod was ready, red = pod was not ready. Use it to see when an outage started and ended.",
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 12
       },
       "fieldConfig": {
         "defaults": {
@@ -1527,13 +1140,11 @@
               "type": "value",
               "options": {
                 "0": {
-                  "text": "NOT READY",
-                  "color": "red",
+                  "text": "Not ready",
                   "index": 0
                 },
                 "1": {
-                  "text": "READY",
-                  "color": "green",
+                  "text": "Ready",
                   "index": 1
                 }
               }
@@ -1599,27 +1210,30 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 19,
+      "id": 13,
       "type": "timeseries",
-      "title": "CPU usage vs limit",
-      "description": "CPU cores used by the rabbitmq container.",
+      "title": "CPU used",
+      "description": "CPU cores used by each RabbitMQ pod. The dashed line is the limit (2 cores).",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 23
+        "y": 17
       },
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "drawStyle": "line",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "fillOpacity": 10,
             "showPoints": "never",
             "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "gradientMode": "opacity",
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1637,9 +1251,6 @@
               "viz": false
             }
           },
-          "color": {
-            "mode": "palette-classic"
-          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1648,9 +1259,40 @@
                 "value": null
               }
             ]
-          }
+          },
+          "min": 0
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Limit"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -1659,7 +1301,7 @@
             "max"
           ],
           "displayMode": "table",
-          "placement": "bottom",
+          "placement": "right",
           "showLegend": true
         },
         "tooltip": {
@@ -1689,7 +1331,7 @@
           },
           "editorMode": "code",
           "expr": "max(kube_pod_container_resource_limits{namespace=~\"$namespace\",pod=~\"$pod\",container=\"rabbitmq\",resource=\"cpu\"})",
-          "legendFormat": "limit",
+          "legendFormat": "Limit",
           "refId": "B",
           "range": true,
           "instant": false
@@ -1701,27 +1343,30 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 20,
+      "id": 14,
       "type": "timeseries",
-      "title": "Container memory (working set) vs limit",
-      "description": "",
+      "title": "Memory used",
+      "description": "Memory used by each RabbitMQ pod. The dashed line is the limit (4 GiB). Kubernetes kills the pod if it goes over.",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 23
+        "y": 17
       },
       "fieldConfig": {
         "defaults": {
           "unit": "bytes",
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "drawStyle": "line",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "fillOpacity": 10,
             "showPoints": "never",
             "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "gradientMode": "opacity",
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1739,9 +1384,6 @@
               "viz": false
             }
           },
-          "color": {
-            "mode": "palette-classic"
-          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1750,9 +1392,40 @@
                 "value": null
               }
             ]
-          }
+          },
+          "min": 0
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Limit"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -1761,7 +1434,7 @@
             "max"
           ],
           "displayMode": "table",
-          "placement": "bottom",
+          "placement": "right",
           "showLegend": true
         },
         "tooltip": {
@@ -1791,7 +1464,605 @@
           },
           "editorMode": "code",
           "expr": "max(kube_pod_container_resource_limits{namespace=~\"$namespace\",pod=~\"$pod\",container=\"rabbitmq\",resource=\"memory\"})",
-          "legendFormat": "limit",
+          "legendFormat": "Limit",
+          "refId": "B",
+          "range": true,
+          "instant": false
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Queue status",
+      "id": 15,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 25
+      },
+      "panels": []
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 16,
+      "type": "table",
+      "title": "Queues",
+      "description": "All queues combined, per RabbitMQ pod (each queue is counted on the pod that hosts it). Ready = waiting to be picked up. Unacked = picked up, not yet confirmed. Total = Ready + Unacked. Consumers = app listeners connected to that pod.",
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ready"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1000
+                    },
+                    {
+                      "color": "red",
+                      "value": 10000
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Unacked"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1000
+                    },
+                    {
+                      "color": "red",
+                      "value": 10000
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Consumers"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "md",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "Ready",
+            "desc": true
+          }
+        ]
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (pod) (rabbitmq_queue_messages_ready{namespace=~\"$namespace\",pod=~\"$pod\"})",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (pod) (rabbitmq_queue_messages_unacked{namespace=~\"$namespace\",pod=~\"$pod\"})",
+          "legendFormat": "__auto",
+          "refId": "B",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (pod) (rabbitmq_queue_messages{namespace=~\"$namespace\",pod=~\"$pod\"})",
+          "legendFormat": "__auto",
+          "refId": "C",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (pod) (rabbitmq_consumers{namespace=~\"$namespace\",pod=~\"$pod\"})",
+          "legendFormat": "__auto",
+          "refId": "D",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "pod": 0,
+              "Value #A": 1,
+              "Value #B": 2,
+              "Value #C": 3,
+              "Value #D": 4
+            },
+            "renameByName": {
+              "pod": "RabbitMQ Pod",
+              "Value #A": "Ready",
+              "Value #B": "Unacked",
+              "Value #C": "Total",
+              "Value #D": "Consumers"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 17,
+      "type": "timeseries",
+      "title": "Messages ready by pod",
+      "description": "Messages waiting to be picked up, per pod. Dashed lines: orange = 1,000 (warning alert), red = 10,000 (critical alert).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "gradientMode": "opacity",
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "axisPlacement": "auto",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1000
+              },
+              {
+                "color": "red",
+                "value": 10000
+              }
+            ]
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc",
+          "hideZeros": false
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (pod) (rabbitmq_queue_messages_ready{namespace=~\"$namespace\",pod=~\"$pod\"})",
+          "legendFormat": "{{pod}}",
+          "refId": "A",
+          "range": true,
+          "instant": false
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 18,
+      "type": "timeseries",
+      "title": "Messages unacked by pod",
+      "description": "Messages picked up by a consumer but not yet confirmed, per pod. A growing line means consumers are slow or stuck.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "gradientMode": "opacity",
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "axisPlacement": "auto",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1000
+              },
+              {
+                "color": "red",
+                "value": 10000
+              }
+            ]
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc",
+          "hideZeros": false
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (pod) (rabbitmq_queue_messages_unacked{namespace=~\"$namespace\",pod=~\"$pod\"})",
+          "legendFormat": "{{pod}}",
+          "refId": "A",
+          "range": true,
+          "instant": false
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Messages: is work flowing?",
+      "id": 19,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "panels": []
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 20,
+      "type": "timeseries",
+      "title": "Messages in vs out (per second)",
+      "description": "In = messages published to RabbitMQ. Out = messages delivered to consumers. If In stays above Out, the backlog grows.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 41
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "gradientMode": "opacity",
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "axisPlacement": "auto",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "In (published)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Out (delivered)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc",
+          "hideZeros": false
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(rabbitmq_global_messages_received_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "In (published)",
+          "refId": "A",
+          "range": true,
+          "instant": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(rabbitmq_global_messages_delivered_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "Out (delivered)",
           "refId": "B",
           "range": true,
           "instant": false
@@ -1805,25 +2076,28 @@
       },
       "id": 21,
       "type": "timeseries",
-      "title": "RabbitMQ memory vs high watermark",
-      "description": "Resident memory as a fraction of vm_memory_high_watermark. At 100% the memory alarm blocks publishers.",
+      "title": "Consumers, connections and queues",
+      "description": "Consumers = app listeners. Connections = apps connected. Queues = number of queues. Sudden drops to 0 mean apps lost their connection.",
       "gridPos": {
         "h": 8,
         "w": 8,
-        "x": 0,
-        "y": 31
+        "x": 8,
+        "y": 41
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "percentunit",
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "drawStyle": "line",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "fillOpacity": 10,
             "showPoints": "never",
             "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "gradientMode": "opacity",
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1833,7 +2107,7 @@
               "type": "linear"
             },
             "thresholdsStyle": {
-              "mode": "line+area"
+              "mode": "off"
             },
             "hideFrom": {
               "legend": false,
@@ -1841,14 +2115,273 @@
               "viz": false
             }
           },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc",
+          "hideZeros": false
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rabbitmq_consumers{namespace=~\"$namespace\"})",
+          "legendFormat": "Consumers",
+          "refId": "A",
+          "range": true,
+          "instant": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rabbitmq_connections{namespace=~\"$namespace\"})",
+          "legendFormat": "Connections",
+          "refId": "B",
+          "range": true,
+          "instant": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rabbitmq_queues{namespace=~\"$namespace\"})",
+          "legendFormat": "Queues",
+          "refId": "C",
+          "range": true,
+          "instant": false
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 22,
+      "type": "timeseries",
+      "title": "Lost messages (unroutable)",
+      "description": "Messages sent to RabbitMQ that matched no queue, so they were dropped or sent back. Should be 0. Usually a wrong routing key or a missing queue.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 41
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "gradientMode": "opacity",
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "axisPlacement": "auto",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
           },
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "transparent",
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Dropped"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Returned to sender"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc",
+          "hideZeros": false
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(rabbitmq_global_messages_unroutable_dropped_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "Dropped",
+          "refId": "A",
+          "range": true,
+          "instant": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(rabbitmq_global_messages_unroutable_returned_total{namespace=~\"$namespace\"}[5m]))",
+          "legendFormat": "Returned to sender",
+          "refId": "B",
+          "range": true,
+          "instant": false
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Limits: how close is RabbitMQ to blocking?",
+      "id": 23,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      },
+      "panels": []
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 24,
+      "type": "timeseries",
+      "title": "Memory vs RabbitMQ limit",
+      "description": "Memory used as % of RabbitMQ's own limit (60% of pod memory). At 100% RabbitMQ raises an alarm and blocks publishers. Alert at 85%.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 50
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "gradientMode": "opacity",
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "axisPlacement": "auto",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
                 "value": null
               },
               {
@@ -1903,27 +2436,30 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 22,
+      "id": 25,
       "type": "timeseries",
-      "title": "Free disk vs alarm limit",
-      "description": "If free disk drops under disk_free_limit, the disk alarm blocks publishers.",
+      "title": "Disk space used",
+      "description": "How full each RabbitMQ data disk (20 GiB) is. RabbitMQ blocks publishers when free space drops below about 8 GiB. Alert at 80%.",
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 31
+        "y": 50
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "bytes",
+          "unit": "percentunit",
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "drawStyle": "line",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "fillOpacity": 10,
             "showPoints": "never",
             "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "gradientMode": "opacity",
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1933,124 +2469,19 @@
               "type": "linear"
             },
             "thresholdsStyle": {
-              "mode": "off"
+              "mode": "dashed"
             },
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             }
-          },
-          "color": {
-            "mode": "palette-classic"
           },
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "max by (pod) (rabbitmq_disk_space_available_bytes{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "{{pod}} free",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "max(rabbitmq_disk_space_available_limit_bytes{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "disk_free_limit",
-          "refId": "B",
-          "range": true,
-          "instant": false
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 23,
-      "type": "timeseries",
-      "title": "Data PVC usage",
-      "description": "",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 31
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "line+area"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "transparent",
                 "value": null
               },
               {
@@ -2105,27 +2536,30 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 24,
+      "id": 26,
       "type": "timeseries",
-      "title": "File descriptors used",
-      "description": "",
+      "title": "Connection and process limits",
+      "description": "File handles = open connections and files, as % of the OS limit. Erlang processes = RabbitMQ's internal tasks, as % of its limit. At 100% new connections are refused. Alert at 80%.",
       "gridPos": {
         "h": 8,
         "w": 8,
-        "x": 0,
-        "y": 39
+        "x": 16,
+        "y": 50
       },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "drawStyle": "line",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "fillOpacity": 10,
             "showPoints": "never",
             "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "gradientMode": "opacity",
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -2135,7 +2569,7 @@
               "type": "linear"
             },
             "thresholdsStyle": {
-              "mode": "off"
+              "mode": "dashed"
             },
             "hideFrom": {
               "legend": false,
@@ -2143,15 +2577,20 @@
               "viz": false
             }
           },
-          "color": {
-            "mode": "palette-classic"
-          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 0.9
               }
             ]
           },
@@ -2185,91 +2624,11 @@
           },
           "editorMode": "code",
           "expr": "max by (pod) (rabbitmq_process_open_fds{namespace=~\"$namespace\",pod=~\"$pod\"}) / max by (pod) (rabbitmq_process_max_fds{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "{{pod}}",
+          "legendFormat": "{{pod}} file handles",
           "refId": "A",
           "range": true,
           "instant": false
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 25,
-      "type": "timeseries",
-      "title": "Erlang processes used",
-      "description": "",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 39
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "min": 0,
-          "max": 1
         },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
         {
           "datasource": {
             "type": "prometheus",
@@ -2277,1174 +2636,7 @@
           },
           "editorMode": "code",
           "expr": "max by (pod) (rabbitmq_erlang_processes_used{namespace=~\"$namespace\",pod=~\"$pod\"}) / max by (pod) (rabbitmq_erlang_processes_limit{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "{{pod}}",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 26,
-      "type": "timeseries",
-      "title": "Container restarts",
-      "description": "Restarts in a sliding 15m window. Alert fires above 3.",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 39
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (pod) (increase(kube_pod_container_status_restarts_total{namespace=~\"$namespace\",pod=~\"$pod\",container=\"rabbitmq\"}[15m]))",
-          "legendFormat": "{{pod}}",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        }
-      ]
-    },
-    {
-      "type": "row",
-      "title": "Queue status (all queues combined)",
-      "id": 27,
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 47
-      },
-      "panels": []
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 28,
-      "type": "table",
-      "title": "Queue status by pod",
-      "description": "Queue numbers summed per RabbitMQ pod. Each queue is counted on the pod that hosts its leader.",
-      "gridPos": {
-        "h": 7,
-        "w": 24,
-        "x": 0,
-        "y": 48
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "filterable": true
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Ready"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
-                    },
-                    {
-                      "color": "orange",
-                      "value": 1000
-                    },
-                    {
-                      "color": "red",
-                      "value": 10000
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Unacked"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
-                    },
-                    {
-                      "color": "orange",
-                      "value": 1000
-                    },
-                    {
-                      "color": "red",
-                      "value": 10000
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm",
-        "footer": {
-          "show": false,
-          "reducer": [
-            "sum"
-          ],
-          "fields": ""
-        },
-        "sortBy": [
-          {
-            "displayName": "Pod",
-            "desc": false
-          }
-        ]
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (pod) (rabbitmq_queues{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "__auto",
-          "refId": "A",
-          "range": false,
-          "instant": true,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (pod) (rabbitmq_queue_messages_ready{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "__auto",
-          "refId": "B",
-          "range": false,
-          "instant": true,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (pod) (rabbitmq_queue_messages_unacked{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "__auto",
-          "refId": "C",
-          "range": false,
-          "instant": true,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (pod) (rabbitmq_queue_messages{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "__auto",
-          "refId": "D",
-          "range": false,
-          "instant": true,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (pod) (rabbitmq_consumers{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "__auto",
-          "refId": "E",
-          "range": false,
-          "instant": true,
-          "format": "table"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "merge",
-          "options": {}
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true
-            },
-            "renameByName": {
-              "pod": "Pod",
-              "Value #A": "Queues",
-              "Value #B": "Ready",
-              "Value #C": "Unacked",
-              "Value #D": "Total messages",
-              "Value #E": "Consumers"
-            },
-            "indexByName": {}
-          }
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 29,
-      "type": "timeseries",
-      "title": "Messages ready / unacked (cluster)",
-      "description": "Ready = waiting to be picked up (backlog). Unacked = picked up but not yet confirmed by the consumer.",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 55
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "line+area"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "transparent",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1000
-              },
-              {
-                "color": "red",
-                "value": 10000
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rabbitmq_queue_messages_ready{namespace=~\"$namespace\"})",
-          "legendFormat": "ready",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rabbitmq_queue_messages_unacked{namespace=~\"$namespace\"})",
-          "legendFormat": "unacked",
-          "refId": "B",
-          "range": true,
-          "instant": false
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 30,
-      "type": "timeseries",
-      "title": "Messages ready by pod",
-      "description": "",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 55
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (pod) (rabbitmq_queue_messages_ready{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "{{pod}}",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 31,
-      "type": "timeseries",
-      "title": "Consumers and queues",
-      "description": "Consumers dropping to 0 while messages are ready means nothing is processing the backlog.",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 63
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rabbitmq_consumers{namespace=~\"$namespace\"})",
-          "legendFormat": "consumers",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rabbitmq_queues{namespace=~\"$namespace\"})",
-          "legendFormat": "queues",
-          "refId": "B",
-          "range": true,
-          "instant": false
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 32,
-      "type": "timeseries",
-      "title": "Queue memory by pod",
-      "description": "",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 63
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "bytes",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (pod) (rabbitmq_queue_process_memory_bytes{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "{{pod}}",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        }
-      ]
-    },
-    {
-      "type": "row",
-      "title": "Message throughput & connections",
-      "id": 33,
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 71
-      },
-      "panels": []
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 34,
-      "type": "timeseries",
-      "title": "Message rates (cluster)",
-      "description": "",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 72
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ops",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(rabbitmq_global_messages_received_total{namespace=~\"$namespace\"}[5m]))",
-          "legendFormat": "published",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(rabbitmq_global_messages_routed_total{namespace=~\"$namespace\"}[5m]))",
-          "legendFormat": "routed",
-          "refId": "B",
-          "range": true,
-          "instant": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(rabbitmq_global_messages_delivered_total{namespace=~\"$namespace\"}[5m]))",
-          "legendFormat": "delivered",
-          "refId": "C",
-          "range": true,
-          "instant": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(rabbitmq_global_messages_acknowledged_total{namespace=~\"$namespace\"}[5m]))",
-          "legendFormat": "acknowledged",
-          "refId": "D",
-          "range": true,
-          "instant": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(rabbitmq_global_messages_redelivered_total{namespace=~\"$namespace\"}[5m]))",
-          "legendFormat": "redelivered",
-          "refId": "E",
-          "range": true,
-          "instant": false
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 35,
-      "type": "timeseries",
-      "title": "Unroutable messages",
-      "description": "Messages published to an exchange with no matching binding. Usually a misconfigured routing key or a missing queue.",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 72
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ops",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(rabbitmq_global_messages_unroutable_dropped_total{namespace=~\"$namespace\"}[5m]))",
-          "legendFormat": "dropped",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(rabbitmq_global_messages_unroutable_returned_total{namespace=~\"$namespace\"}[5m]))",
-          "legendFormat": "returned",
-          "refId": "B",
-          "range": true,
-          "instant": false
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 36,
-      "type": "timeseries",
-      "title": "Connections / channels by pod",
-      "description": "",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 80
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (pod) (rabbitmq_connections{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "{{pod}} connections",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (pod) (rabbitmq_channels{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "{{pod}} channels",
-          "refId": "B",
-          "range": true,
-          "instant": false
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 37,
-      "type": "timeseries",
-      "title": "Connection churn",
-      "description": "High churn means clients open a new connection per message instead of reusing one.",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 80
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ops",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "lineInterpolation": "linear",
-            "gradientMode": "none",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(rabbitmq_connections_opened_total{namespace=~\"$namespace\"}[5m]))",
-          "legendFormat": "opened",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(rabbitmq_connections_closed_total{namespace=~\"$namespace\"}[5m]))",
-          "legendFormat": "closed",
+          "legendFormat": "{{pod}} Erlang processes",
           "refId": "B",
           "range": true,
           "instant": false
