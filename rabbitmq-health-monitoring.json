@@ -1725,213 +1725,15 @@
       ]
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 17,
-      "type": "timeseries",
-      "title": "Messages ready by pod",
-      "description": "Messages waiting to be picked up, per pod. Dashed lines: orange = 1,000 (warning alert), red = 10,000 (critical alert).",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 32
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "lineInterpolation": "smooth",
-            "gradientMode": "opacity",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "dashed"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1000
-              },
-              {
-                "color": "red",
-                "value": 10000
-              }
-            ]
-          },
-          "min": 0
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (pod) (rabbitmq_queue_messages_ready{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "{{pod}}",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "id": 18,
-      "type": "timeseries",
-      "title": "Messages unacked by pod",
-      "description": "Messages picked up by a consumer but not yet confirmed, per pod. A growing line means consumers are slow or stuck.",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 32
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "lineInterpolation": "smooth",
-            "gradientMode": "opacity",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "thresholdsStyle": {
-              "mode": "dashed"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1000
-              },
-              {
-                "color": "red",
-                "value": 10000
-              }
-            ]
-          },
-          "min": 0
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc",
-          "hideZeros": false
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (pod) (rabbitmq_queue_messages_unacked{namespace=~\"$namespace\",pod=~\"$pod\"})",
-          "legendFormat": "{{pod}}",
-          "refId": "A",
-          "range": true,
-          "instant": false
-        }
-      ]
-    },
-    {
       "type": "row",
       "title": "Messages: is work flowing?",
-      "id": 19,
+      "id": 17,
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 40
+        "y": 32
       },
       "panels": []
     },
@@ -1940,7 +1742,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 20,
+      "id": 18,
       "type": "timeseries",
       "title": "Messages in vs out (per second)",
       "description": "In = messages published to RabbitMQ. Out = messages delivered to consumers. If In stays above Out, the backlog grows.",
@@ -1948,7 +1750,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 41
+        "y": 33
       },
       "fieldConfig": {
         "defaults": {
@@ -2074,7 +1876,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 21,
+      "id": 19,
       "type": "timeseries",
       "title": "Consumers, connections and queues",
       "description": "Consumers = app listeners. Connections = apps connected. Queues = number of queues. Sudden drops to 0 mean apps lost their connection.",
@@ -2082,7 +1884,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 41
+        "y": 33
       },
       "fieldConfig": {
         "defaults": {
@@ -2189,7 +1991,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 22,
+      "id": 20,
       "type": "timeseries",
       "title": "Lost messages (unroutable)",
       "description": "Messages sent to RabbitMQ that matched no queue, so they were dropped or sent back. Should be 0. Usually a wrong routing key or a missing queue.",
@@ -2197,7 +1999,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 41
+        "y": 33
       },
       "fieldConfig": {
         "defaults": {
@@ -2321,13 +2123,13 @@
     {
       "type": "row",
       "title": "Limits: how close is RabbitMQ to blocking?",
-      "id": 23,
+      "id": 21,
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 41
       },
       "panels": []
     },
@@ -2336,7 +2138,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 24,
+      "id": 22,
       "type": "timeseries",
       "title": "Memory vs RabbitMQ limit",
       "description": "Memory used as % of RabbitMQ's own limit (60% of pod memory). At 100% RabbitMQ raises an alarm and blocks publishers. Alert at 85%.",
@@ -2344,7 +2146,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 50
+        "y": 42
       },
       "fieldConfig": {
         "defaults": {
@@ -2436,7 +2238,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 25,
+      "id": 23,
       "type": "timeseries",
       "title": "Disk space used",
       "description": "How full each RabbitMQ data disk (20 GiB) is. RabbitMQ blocks publishers when free space drops below about 8 GiB. Alert at 80%.",
@@ -2444,7 +2246,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 50
+        "y": 42
       },
       "fieldConfig": {
         "defaults": {
@@ -2536,7 +2338,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 26,
+      "id": 24,
       "type": "timeseries",
       "title": "Connection and process limits",
       "description": "File handles = open connections and files, as % of the OS limit. Erlang processes = RabbitMQ's internal tasks, as % of its limit. At 100% new connections are refused. Alert at 80%.",
@@ -2544,7 +2346,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 50
+        "y": 42
       },
       "fieldConfig": {
         "defaults": {
